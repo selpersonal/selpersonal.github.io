@@ -1,0 +1,2467 @@
+openapi: 3.0.3
+info:
+  title: Selección de personal API
+  version: 1.2.0
+  description: |-
+    # Acerca de
+    Esta API tiene como objetivo permitir el desarrollo de servicios orientados a operaciones de gestión y administración sobre el proceso de selección de postulantes, incluyendo el proceso de postulación, solicitudes y administración de clientes.
+    
+    # Referencias
+    - [Jira](https://softtek-katheringutierrez.atlassian.net/jira/software/projects/PROYEC/boards/1)
+    - [Repositorio Back-end](https://github.com/selpersonal/selPersonal-backend)
+    - [Repositorio Front-end](https://github.com/selpersonal/selPersonal-frontend)
+externalDocs:
+  description: Documentación Oficial
+  url: https://softtek-katheringutierrez.atlassian.net/wiki/spaces/SP/overview?homepageId=590057
+servers:
+  - url: http://localhost:{port}/api/{version}
+    description: Ambiente Local
+    variables:
+      port:
+        default: "8080"
+      version:
+        default: v1
+tags:
+  - name: Clientes
+    description: Operaciones sobre clientes y comerciales BRM
+  - name: Postulantes
+    description: Operaciones sobre postulantes y lista negra
+  - name: Solicitudes
+    description: Operaciones sobre solicitudes, sus estados y registros históricos
+  - name: Postulaciones
+    description: Operaciones sobre postulaciones y sus estados
+paths:
+  /clientes:
+    get:
+      summary: Entrega la lista completa de clientes
+      description: Entrega la lista completa de clientes junto con metadata adicional en base a lo definido en el documento de códigos de dominio.
+      tags:
+        - Clientes
+      responses:
+        '200':
+          description: Entregar lista completa de clientes
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  metadata:
+                    $ref: "#/components/schemas/Metadata"
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Cliente"
+                    uniqueItems: true
+        '204':
+          $ref: "#/components/responses/204"
+    post:
+      summary: Inserta un nuevo cliente
+      description: Permite la inserción de un nuevo cliente
+      tags:
+        - Clientes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                nombre:
+                  type: string
+                  description: Nombre del cliente
+                  maxLength: 100
+                  example: santander
+                paisId:
+                  type: integer
+                  format: int64
+                  minimum: 1
+                  example: 1
+                comercialBRMId:
+                  type: integer
+                  format: int64
+                  minimum: 1
+                  example: 1
+              required: [nombre, paisId, comercialBRMId]
+      responses:
+        '201':
+          description: Entregar registro del nuevo cliente y metadata adicional con información relevante
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  metadata:
+                    $ref: "#/components/schemas/Metadata"
+                  data:
+                    $ref: "#/components/schemas/Cliente"
+        '400':
+          $ref: "#/components/responses/400"
+  /clientes/{clienteId}:
+    get:
+      summary: Entrega un cliente
+      description: Entrega los datos específicos de un cliente según su identificador único.
+      tags:
+        - Clientes
+      parameters:
+        - $ref: "#/components/parameters/clienteIdPathParam"
+      responses:
+        '200':
+          description: Entregar datos de un cliente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  metadata:
+                    $ref: "#/components/schemas/Metadata"
+                  data:
+                    $ref: "#/components/schemas/Cliente"
+        '204':
+          $ref: "#/components/responses/204"
+    put:
+      summary: Modifica los datos de un cliente
+      description: Permite la modificación de los datos de un cliente.
+      tags:
+        - Clientes
+      parameters:
+        - $ref: "#/components/parameters/clienteIdPathParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                nombre:
+                  type: string
+                  description: Nombre del cliente
+                  maxLength: 100
+                  example: santander
+                paisId:
+                  type: integer
+                  format: int64
+                  minimum: 1
+                  example: 1
+                comercialBRMId:
+                  type: integer
+                  format: int64
+                  minimum: 1
+                  example: 1
+              required: [nombre, paisId, comercialBRMId]
+      responses:
+        '200':
+          description: Entregar datos completos del cliente modificado junto con metadata adicional
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  metadata:
+                    $ref: "#/components/schemas/Metadata"
+                  data:
+                    $ref: "#/components/schemas/Cliente"
+        '400':
+          $ref: "#/components/responses/400"
+        '404':
+          $ref: "#/components/responses/404"
+    delete:
+      summary: Elimina el registro de un cliente
+      description: Permite eliminar un cliente según su identificador único.
+      tags:
+        - Clientes
+      parameters:
+        - $ref: "#/components/parameters/clienteIdPathParam"
+      responses:
+        '200':
+          description: Entregar metadata que indique que el recurso se eliminó correctamente
+          content:
+            application/json:
+              schema:
+                properties:
+                  metadata:
+                    $ref: "#/components/schemas/Metadata"
+                  data:
+                    type: object
+        '404':
+          $ref: "#/components/responses/404"
+  /postulantes:
+    get:
+      summary: Entrega la lista completa de postulantes
+      description: Entrega la lista completa de postulantes junto con metadata adicional en base a lo definido en el documento de códigos de dominio.
+      tags:
+        - Postulantes
+      responses:
+        '200':
+          description: Entregar lista completa de postulantes
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  metadata:
+                    $ref: "#/components/schemas/Metadata"
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Postulante"
+                    uniqueItems: true
+        '204':
+          $ref: "#/components/responses/204"
+    post:
+      summary: Insertar un nuevo postulante
+      description: Permite la inserción de un nuevo postulante
+      tags:
+        - Postulantes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                nombre:
+                  type: string
+                  description: Nombre/s del postulante
+                  maxLength: 100
+                  example: juan
+                apellidos:
+                  type: string
+                  description: Apellido/s del postulante
+                  maxLength: 100
+                  example: perez sepulveda
+                email:
+                  type: string
+                  maxLength: 120
+                  example: juan.sepulveda@email.com
+                numCelular:
+                  type: string
+                  description: Número telefónico del postulante con código de pais
+                  maxLength: 20
+                  nullable: true
+                  example: 56912345678
+                paisId:
+                  type: integer
+                  format: int64
+                  minimum: 1
+                  example: 1
+                generoId:
+                  type: integer
+                  format: int64
+                  minimum: 1
+                  example: 1
+                discapacidad:
+                  type: array
+                  items:
+                    properties:
+                      discapacidadId:
+                        type: integer
+                        format: int64
+                        minimum: 1
+                        example: 1
+                indListaNegra:
+                  type: integer
+                  format: int32
+                  minimum: 0
+                  maximum: 1
+                  description: Indicador de si el postulante está en la lista negra o no
+                  example: 0
+              required: [nombre, apellidos, email, paisId, generoId, discapacidad]
+      responses:
+        '201':
+          description: Entregar registro del nuevo postulante y metadata adicional con información relevante
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  metadata:
+                    $ref: "#/components/schemas/Metadata"
+                  data:
+                    $ref: "#/components/schemas/Postulante"
+        '400':
+          $ref: "#/components/responses/400"
+  /postulantes/{postulanteId}:
+    get:
+      summary: Entrega un postulante
+      description: Entrega los datos específicos de un postulante según su identificador único.
+      tags:
+        - Postulantes
+      parameters:
+        - $ref: "#/components/parameters/postulanteIdPathParam"
+      responses:
+        '200':
+          description: Entregar datos de un postulante
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  metadata:
+                    $ref: "#/components/schemas/Metadata"
+                  data:
+                    $ref: "#/components/schemas/Postulante"
+        '204':
+          $ref: "#/components/responses/204"
+    put:
+      summary: Modifica los datos de un postulante
+      description: Permite la modificación de los datos de un postulante.
+      tags:
+        - Postulantes
+      parameters:
+        - $ref: "#/components/parameters/postulanteIdPathParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                nombre:
+                  type: string
+                  description: Nombre/s del postulante
+                  maxLength: 100
+                  example: juan
+                apellidos:
+                  type: string
+                  description: Apellido/s del postulante
+                  maxLength: 100
+                  example: perez sepulveda
+                email:
+                  type: string
+                  maxLength: 120
+                  example: juan.sepulveda@email.com
+                numCelular:
+                  type: string
+                  description: Número telefónico del postulante con código de pais
+                  maxLength: 20
+                  nullable: true
+                  example: 56912345678
+                paisId:
+                  type: integer
+                  format: int64
+                  minimum: 1
+                  example: 1
+                generoId:
+                  type: integer
+                  format: int64
+                  minimum: 1
+                  example: 1
+                discapacidad:
+                  type: array
+                  items:
+                    properties:
+                      discapacidadId:
+                        type: integer
+                        format: int64
+                        minimum: 1
+                        example: 1
+                indListaNegra:
+                  type: integer
+                  format: int32
+                  minimum: 0
+                  maximum: 1
+                  description: Indicador de si el postulante está en la lista negra o no
+                  example: 0
+              required: [nombre, apellidos, email, paisId, generoId, discapacidad]
+      responses:
+        '200':
+          description: Entregar datos completos del postulante modificado junto con metadata adicional
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  metadata:
+                    $ref: "#/components/schemas/Metadata"
+                  data:
+                    $ref: "#/components/schemas/Postulante"
+        '400':
+          $ref: "#/components/responses/400"
+        '404':
+          $ref: "#/components/responses/404"
+    delete:
+      summary: Elimina el registro de un postulante
+      description: Permite eliminar un postulante según su identificador único.
+      tags:
+        - Postulantes
+      parameters:
+        - $ref: "#/components/parameters/postulanteIdPathParam"
+      responses:
+        '200':
+          description: Entregar metadata que indique que el recurso se eliminó correctamente
+          content:
+            application/json:
+              schema:
+                properties:
+                  metadata:
+                    $ref: "#/components/schemas/Metadata"
+                  data:
+                    type: object
+        '404':
+          $ref: "#/components/responses/404"
+  /solicitudes:
+    get:
+      summary: Entrega la lista completa de solicitudes con paginación
+      description: Entrega la lista completa de solicitudes junto con metadata adicional en base a lo definido en el documento de códigos de dominio. Además, se incluye paginación.
+      tags:
+        - Solicitudes
+      parameters:
+        - $ref: "#/components/parameters/pageQueryParam"
+        - $ref: "#/components/parameters/pageSizeQueryParam"
+        - $ref: "#/components/parameters/sortByQueryParam"
+        - $ref: "#/components/parameters/orderByQueryParam"
+      responses:
+        '200':
+          description: Entregar lista completa de solicitudes con paginación
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  metadata:
+                    $ref: "#/components/schemas/Metadata"
+                  paginacion:
+                    $ref: "#/components/schemas/Paginacion"
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/SolicitudDAO"
+                    uniqueItems: true
+        '204':
+          $ref: "#/components/responses/204"
+    post:
+      summary: Insertar una nueva solicitud
+      description: Permite la inserción de una nueva solicitud
+      tags:
+        - Solicitudes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                clienteId:
+                  type: integer
+                  format: int64
+                  minimum: 1
+                  example: 1
+                bidding:
+                  type: string
+                  description: Código único identificador entregado a raíz de una solicitud generada para clientes específicos
+                  maxLength: 50
+                  nullable: true
+                  example: citi-123456
+                nombreSolicitante:
+                  type: string
+                  description: Nombre y apellido/s de quien generó la solicitud
+                  maxLength: 100
+                  example: juan perez
+                areaSolicitanteId:
+                  type: integer
+                  format: int64
+                  minimum: 1
+                  example: 1
+                fechaInicio:
+                  type: string
+                  format: date
+                  description: Fecha de inicio de la vigencia de la postulación
+                  example: 2024-01-10
+                fechaVencimiento:
+                  type: string
+                  format: date
+                  description: Fecha de vencimiento de la vigencia de la postulación
+                  example: 2024-05-10
+                vacantes:
+                  type: integer
+                  format: int32
+                  description: Cantidad de vacantes disponibles
+                  minimum: 1
+                  maximum: 128
+                  example: 10
+                perfilId:
+                  type: integer
+                  format: int64
+                  minimum: 1
+                  example: 1
+                seniorityId:
+                  type: integer
+                  format: int64
+                  minimum: 1
+                  example: 1
+                tecnologiaPrincipalId:
+                  type: integer
+                  format: int64
+                  minimum: 1
+                  example: 1
+                idioma:
+                  type: array
+                  items:
+                    properties:
+                      idiomaId:
+                        type: integer
+                        example: 1
+                idiomaCVId:
+                  type: integer
+                  format: int64
+                  minimum: 1
+                  example: 1
+                baseSalarialId:
+                  type: integer
+                  format: int64
+                  minimum: 1
+                  example: 1
+                detalleAdicional:
+                  type: string
+                  description: Campo opcional para comentarios o descripciones detalladas
+                  maxLength: 5000
+                  nullable: true
+                  example: Debe conocer las siguientes tecnologias...
+              required: [clienteId, estado, nombreSolicitante, areaSolicitanteId, fechaInicio, fechaVencimiento, vacantes, perfilId, seniorityId, tecnologiaPrincipalId, idioma, idiomaCVId, baseSalarialId]
+      responses:
+        '201':
+          description: Entregar registro de la nueva solicitud y metadata adicional con información relevante
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  metadata:
+                    $ref: "#/components/schemas/Metadata"
+                  data:
+                    $ref: "#/components/schemas/Solicitud"
+        '400':
+          $ref: "#/components/responses/400"
+  /solicitudes/{solicitudId}:
+    get:
+      summary: Entrega una solicitud
+      description: Entrega los datos específicos de una solicitud según su identificador único.
+      tags:
+        - Solicitudes
+      parameters:
+        - $ref: "#/components/parameters/solicitudIdPathParam"
+      responses:
+        '200':
+          description: Entregar datos de una solicitud
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  metadata:
+                    $ref: "#/components/schemas/Metadata"
+                  data:
+                    $ref: "#/components/schemas/SolicitudDAO"
+        '204':
+          $ref: "#/components/responses/204"
+    put:
+      summary: Modifica los datos de una solicitud
+      description: Permite la modificación de los datos de una solicitud.
+      tags:
+        - Solicitudes
+      parameters:
+        - $ref: "#/components/parameters/solicitudIdPathParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                estadoId:
+                  type: integer
+                  format: int64
+                  minimum: 1
+                  example: 1
+                motivoEstado:
+                  type: string
+                  description: Razón por la que se realiza el cambio
+                  maxLength: 100
+                  example: proceso finalizado
+                clienteId:
+                  type: integer
+                  format: int64
+                  minimum: 1
+                  example: 1
+                bidding:
+                  type: string
+                  description: Código único identificador entregado a raíz de una solicitud generada para clientes específicos
+                  maxLength: 50
+                  nullable: true
+                  example: citi-123456
+                nombreSolicitante:
+                  type: string
+                  description: Nombre y apellido/s de quien generó la solicitud
+                  maxLength: 100
+                  example: juan perez
+                areaSolicitanteId:
+                  type: integer
+                  format: int64
+                  minimum: 1
+                  example: 1
+                fechaInicio:
+                  type: string
+                  format: date
+                  description: Fecha de inicio de la vigencia de la postulación
+                  example: 2024-01-10
+                fechaVencimiento:
+                  type: string
+                  format: date
+                  description: Fecha de vencimiento de la vigencia de la postulación
+                  example: 2024-05-10
+                motivoFechaVencimiento:
+                  type: string
+                  description: Razón por la que se realiza el cambio
+                  maxLength: 100
+                  example: cliente no cumple con la entrega de información...
+                vacantes:
+                  type: integer
+                  format: int32
+                  description: Cantidad de vacantes disponibles
+                  minimum: 1
+                  maximum: 128
+                  example: 10
+                perfilId:
+                  type: integer
+                  format: int64
+                  minimum: 1
+                  example: 1
+                seniorityId:
+                  type: integer
+                  format: int64
+                  minimum: 1
+                  example: 1
+                tecnologiaPrincipalId:
+                  type: integer
+                  format: int64
+                  minimum: 1
+                  example: 1
+                idioma:
+                  type: array
+                  items:
+                    properties:
+                      idiomaId:
+                        type: integer
+                        example: 1
+                idiomaCVId:
+                  type: integer
+                  format: int64
+                  minimum: 1
+                  example: 1
+                baseSalarialId:
+                  type: integer
+                  format: int64
+                  minimum: 1
+                  example: 1
+                detalleAdicional:
+                  type: string
+                  description: Campo opcional para comentarios o descripciones detalladas
+                  maxLength: 5000
+                  nullable: true
+                  example: Debe conocer las siguientes tecnologias...
+              required: [estadoId, motivoEstado, clienteId, nombreSolicitante, areaSolicitanteId, fechaInicio, fechaVencimiento, motivoFechaVencimiento, vacantes, perfilId, seniorityId, tecnologiaPrincipalId, idioma, idiomaCVId, baseSalarialId]
+      responses:
+        '200':
+          description: Entregar datos completos de la solicitud modificada junto con metadata adicional
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  metadata:
+                    $ref: "#/components/schemas/Metadata"
+                  data:
+                    $ref: "#/components/schemas/SolicitudDAO"
+        '400':
+          $ref: "#/components/responses/400"
+        '404':
+          $ref: "#/components/responses/404"
+    delete:
+      summary: Elimina el registro de una solicitud
+      description: Permite eliminar una solicitud según su identificador único.
+      tags:
+        - Solicitudes
+      parameters:
+        - $ref: "#/components/parameters/solicitudIdPathParam"
+      responses:
+        '200':
+          description: Entregar metadata que indique que el recurso se eliminó correctamente
+          content:
+            application/json:
+              schema:
+                properties:
+                  metadata:
+                    $ref: "#/components/schemas/Metadata"
+                  data:
+                    type: object
+        '404':
+          $ref: "#/components/responses/404"
+  /postulaciones:
+    get:
+      summary: Entrega la lista completa de postulaciones con paginación
+      description: Entrega la lista completa de postulaciones junto con metadata adicional en base a lo definido en el documento de códigos de dominio. Además, se incluye paginación.
+      tags:
+        - Postulaciones
+      parameters:
+        - $ref: "#/components/parameters/pageQueryParam"
+        - $ref: "#/components/parameters/pageSizeQueryParam"
+        - $ref: "#/components/parameters/sortByQueryParam"
+        - $ref: "#/components/parameters/orderByQueryParam"
+      responses:
+        '200':
+          description: Entregar lista completa de postulaciones con paginación
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  metadata:
+                    $ref: "#/components/schemas/Metadata"
+                  pagination:
+                    $ref: "#/components/schemas/Paginacion"
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/PostulacionDAO"
+                    uniqueItems: true
+        '204':
+          $ref: "#/components/responses/204"
+    post:
+      summary: Insertar una nueva postulación
+      description: Permite la inserción de una nueva postulación
+      tags:
+        - Postulaciones
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                solicitudSRSId:
+                  type: integer
+                  format: int64
+                  minimum: 1
+                  example: 1
+                seniorityId:
+                  type: integer
+                  format: int64
+                  minimum: 1
+                  example: 1
+                sueldoSolicitado:
+                  type: integer
+                  format: int32
+                  description: Sueldo que solicita el postulante
+                  maxLength: 7
+                  example: 1200000
+                postulanteId:
+                  type: integer
+                  format: int64
+                  minimum: 1
+                  example: 1
+                indReemplazo:
+                  type: integer
+                  format: int32
+                  minimum: 0
+                  maximum: 1
+                  description: Indicador de si el postulante irá por un reemplazo o no
+                  example: 1
+                fechaRecepcionCV:
+                  type: string
+                  format: date
+                  description: Fecha en la que se recibió el CV
+                  example: 2024-01-10
+                origenCVId:
+                  type: integer
+                  format: int64
+                  minimum: 1
+                  example: 1
+                paisOrigenCVId:
+                  type: integer
+                  format: int64
+                  minimum: 1
+                  example: 1
+                cv:
+                  type: string
+                  format: binary
+                  description: Registro del CV del postulante
+                  nullable: true
+                fechaEntrevistaInterna:
+                  type: string
+                  format: date
+                  description: Fecha en la que el postulante tendrá la entrevista con la empresa interna
+                  example: 2024-02-10
+                indApruebaEntrevistaInterna:
+                  type: integer
+                  format: int32
+                  minimum: 0
+                  maximum: 1
+                  description: Indicador de si el postulante aprobó la entrevista con la empresa interna
+                  example: 1
+                comentarioEntrevistaInterna:
+                  type: string
+                  description: Comentarios opcionales sobre el desempeño del postulante en la entrevista interna
+                  maxLength: 500
+                  nullable: true
+                  example: el postulante hizo la entrevista con...
+                nivelInglesId:
+                  type: integer
+                  format: int64
+                  minimum: 1
+                  example: 1
+                indApruebaIngles:
+                  type: integer
+                  format: int32
+                  minimum: 0
+                  maximum: 1
+                  description: Indicador de si el postulante aprobó la prueba de inglés con la empresa interna
+                  example: 1
+                indRequierePruebaTecnica:
+                  type: integer
+                  format: int32
+                  minimum: 0
+                  maximum: 1
+                  description: Indicador de si el postulante requiere realizar una prueba técnica con la empresa interna o con cliente
+                  example: 1
+                fechaEnvioPruebaTecnica:
+                  type: string
+                  format: date
+                  description: Fecha en la que se le envía la prueba técnica a el postulante
+                  example: 2024-01-20
+                fechaEntregaPruebaTecnica:
+                  type: string
+                  format: date
+                  description: Fecha de entrega de la prueba técnica del postulante
+                  example: 2024-01-25
+                comentariosPruebaTecnica:
+                  type: string
+                  description: Comentarios opcionales del cliente o empresa interna sobre el desempeño del postulante
+                  maxLength: 500
+                  nullable: true
+                  example: si bien el postulante tuvo alto rendimiento...
+                indApruebaPruebaTecnica:
+                  type: integer
+                  format: int32
+                  minimum: 0
+                  maximum: 1
+                  description: Indicador de si el postulante aprobó la prueba técnica realizada con la empresa interna o con cliente
+                  example: 1
+                feedbackPruebaTecnica:
+                  type: string
+                  format: binary
+                  description: Documento opcional del feedback del cliente
+                  nullable: true
+                indEnviarAEntrevistaConCliente:
+                  type: integer
+                  format: int32
+                  minimum: 0
+                  maximum: 1
+                  description: Indicador de si el postulante está calificado para ir a una entrevista con cliente
+                  example: 1
+                motivoNoEnvioId:
+                  type: integer
+                  format: int64
+                  minimum: 1
+                  example: 1
+                fechaEntrevistaCliente:
+                  type: string
+                  format: date
+                  description: Fecha en la que el cliente entrevistará al postulante
+                  example: 2024-03-10
+                indAceptadoPorCliente:
+                  type: integer
+                  format: int32
+                  minimum: 0
+                  maximum: 1
+                  description: Indicador de si el postulante fue aceptado por el cliente
+                  example: 1
+                motivoRechazo:
+                  type: string
+                  description: Indica (si corresponde) el motivo por el cual el postulante fue rechazado por el cliente
+                  maxLength: 500
+                  nullable: true
+                  example: el postulante no calificó por...
+                comentariosAdicionales:
+                  type: string
+                  description: Comentarios adicionales opcionales referentes a cualquier ámbito de la postulación o postulante
+                  maxLength: 500
+                  nullable: true
+                  example: sin comentarios
+                fechaInicioEnCliente:
+                  type: string
+                  format: date
+                  description: Fecha en la que el postulante ejercerá sus labores en cliente
+                  example: 2024-04-10
+                indPostulanteEnCliente:
+                  type: integer
+                  format: int32
+                  minimum: 0
+                  maximum: 1
+                  description: Indicador de si el postulante quedó en cliente
+                  example: 1
+                indPostulanteAbandonaPostulacion:
+                  type: integer
+                  format: int32
+                  minimum: 0
+                  maximum: 1
+                  description: Indicador de si el postulante abandonó el proceso de postulación
+                  example: 1
+              required: [solicitudSRSId, seniorityId, sueldoSolicitado, postulanteId, indReemplazo]
+      responses:
+        '201':
+          description: Entregar registro de la nueva postulación y metadata adicional con información relevante
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  metadata:
+                    $ref: "#/components/schemas/Metadata"
+                  data:
+                    $ref: "#/components/schemas/Postulacion"
+        '400':
+          $ref: "#/components/responses/400"
+  /postulaciones/{postulacionId}:
+    get:
+      summary: Entrega una postulación
+      description: Entrega los datos específicos de una postulación según su identificador único.
+      tags:
+        - Postulaciones
+      parameters:
+        - $ref: "#/components/parameters/postulacionIdPathParam"
+      responses:
+        '200':
+          description: Entregar datos de una postulación
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  metadata:
+                    $ref: "#/components/schemas/Metadata"
+                  data:
+                    $ref: "#/components/schemas/PostulacionDAO"
+        '204':
+          $ref: "#/components/responses/204"
+    put:
+      summary: Modifica los datos de una postulación
+      description: Permite la modificación de los datos de una postulación.
+      tags:
+        - Postulaciones
+      parameters:
+        - $ref: "#/components/parameters/postulacionIdPathParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                estadoId:
+                  type: integer
+                  format: int64
+                  minimum: 1
+                  example: 1
+                motivoEstado:
+                  type: string
+                  description: Razón por la que se realiza el cambio
+                  maxLength: 100
+                  example: proceso finalizado
+                solicitudSRSId:
+                  type: integer
+                  format: int64
+                  minimum: 1
+                  example: 1
+                seniorityId:
+                  type: integer
+                  format: int64
+                  minimum: 1
+                  example: 1
+                sueldoSolicitado:
+                  type: integer
+                  format: int32
+                  description: Sueldo que solicita el postulante
+                  maxLength: 7
+                  example: 1200000
+                postulanteId:
+                  type: integer
+                  format: int64
+                  minimum: 1
+                  example: 1
+                indReemplazo:
+                  type: integer
+                  format: int32
+                  minimum: 0
+                  maximum: 1
+                  description: Indicador de si el postulante irá por un reemplazo o no
+                  example: 1
+                fechaRecepcionCV:
+                  type: string
+                  format: date
+                  description: Fecha en la que se recibió el CV
+                  example: 2024-01-10
+                origenCVId:
+                  type: integer
+                  format: int64
+                  minimum: 1
+                  example: 1
+                paisOrigenCVId:
+                  type: integer
+                  format: int64
+                  minimum: 1
+                  example: 1
+                cv:
+                  type: string
+                  format: binary
+                  description: Registro del CV del postulante
+                  nullable: true
+                fechaEntrevistaInterna:
+                  type: string
+                  format: date
+                  description: Fecha en la que el postulante tendrá la entrevista con la empresa interna
+                  example: 2024-02-10
+                indApruebaEntrevistaInterna:
+                  type: integer
+                  format: int32
+                  minimum: 0
+                  maximum: 1
+                  description: Indicador de si el postulante aprobó la entrevista con la empresa interna
+                  example: 1
+                comentarioEntrevistaInterna:
+                  type: string
+                  description: Comentarios opcionales sobre el desempeño del postulante en la entrevista interna
+                  maxLength: 500
+                  nullable: true
+                  example: el postulante hizo la entrevista con...
+                nivelInglesId:
+                  type: integer
+                  format: int64
+                  minimum: 1
+                  example: 1
+                indApruebaIngles:
+                  type: integer
+                  format: int32
+                  minimum: 0
+                  maximum: 1
+                  description: Indicador de si el postulante aprobó la prueba de inglés con la empresa interna
+                  example: 1
+                indRequierePruebaTecnica:
+                  type: integer
+                  format: int32
+                  minimum: 0
+                  maximum: 1
+                  description: Indicador de si el postulante requiere realizar una prueba técnica con la empresa interna o con cliente
+                  example: 1
+                fechaEnvioPruebaTecnica:
+                  type: string
+                  format: date
+                  description: Fecha en la que se le envía la prueba técnica a el postulante
+                  example: 2024-01-20
+                fechaEntregaPruebaTecnica:
+                  type: string
+                  format: date
+                  description: Fecha de entrega de la prueba técnica del postulante
+                  example: 2024-01-25
+                comentariosPruebaTecnica:
+                  type: string
+                  description: Comentarios opcionales del cliente o empresa interna sobre el desempeño del postulante
+                  maxLength: 500
+                  nullable: true
+                  example: si bien el postulante tuvo alto rendimiento...
+                indApruebaPruebaTecnica:
+                  type: integer
+                  format: int32
+                  minimum: 0
+                  maximum: 1
+                  description: Indicador de si el postulante aprobó la prueba técnica realizada con la empresa interna o con cliente
+                  example: 1
+                feedbackPruebaTecnica:
+                  type: string
+                  format: binary
+                  description: Documento opcional del feedback del cliente
+                  nullable: true
+                indEnviarAEntrevistaConCliente:
+                  type: integer
+                  format: int32
+                  minimum: 0
+                  maximum: 1
+                  description: Indicador de si el postulante está calificado para ir a una entrevista con cliente
+                  example: 1
+                motivoNoEnvioId:
+                  type: integer
+                  format: int64
+                  minimum: 1
+                  example: 1
+                fechaEntrevistaCliente:
+                  type: string
+                  format: date
+                  description: Fecha en la que el cliente entrevistará al postulante
+                  example: 2024-03-10
+                indAceptadoPorCliente:
+                  type: integer
+                  format: int32
+                  minimum: 0
+                  maximum: 1
+                  description: Indicador de si el postulante fue aceptado por el cliente
+                  example: 1
+                motivoRechazo:
+                  type: string
+                  description: Indica (si corresponde) el motivo por el cual el postulante fue rechazado por el cliente
+                  maxLength: 500
+                  nullable: true
+                  example: el postulante no calificó por...
+                comentariosAdicionales:
+                  type: string
+                  description: Comentarios adicionales opcionales referentes a cualquier ámbito de la postulación o postulante
+                  maxLength: 500
+                  nullable: true
+                  example: sin comentarios
+                fechaInicioEnCliente:
+                  type: string
+                  format: date
+                  description: Fecha en la que el postulante ejercerá sus labores en cliente
+                  example: 2024-04-10
+                indPostulanteEnCliente:
+                  type: integer
+                  format: int32
+                  minimum: 0
+                  maximum: 1
+                  description: Indicador de si el postulante quedó en cliente
+                  example: 1
+                indPostulanteAbandonaPostulacion:
+                  type: integer
+                  format: int32
+                  minimum: 0
+                  maximum: 1
+                  description: Indicador de si el postulante abandonó el proceso de postulación
+                  example: 1
+              required: [estadoId, motivoEstado, solicitudSRSId, seniorityId, sueldoSolicitado, postulanteId, indReemplazo]
+      responses:
+        '200':
+          description: Entregar datos completos de la postulación modificada junto con metadata adicional
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  metadata:
+                    $ref: "#/components/schemas/Metadata"
+                  data:
+                    $ref: "#/components/schemas/PostulacionDAO"
+        '400':
+          $ref: "#/components/responses/400"
+        '404':
+          $ref: "#/components/responses/404"
+    delete:
+      summary: Elimina el registro de una postulación
+      description: Permite eliminar una postulación según su identificador único.
+      tags:
+        - Postulaciones
+      parameters:
+        - $ref: "#/components/parameters/postulacionIdPathParam"
+      responses:
+        '200':
+          description: Entregar metadata que indique que el recurso se eliminó correctamente
+          content:
+            application/json:
+              schema:
+                properties:
+                  metadata:
+                    $ref: "#/components/schemas/Metadata"
+                  data:
+                    type: object
+        '404':
+          $ref: "#/components/responses/404"
+components:
+  parameters:
+    clienteIdPathParam:
+      name: clienteId
+      in: path
+      required: true
+      schema:
+        type: integer
+      example: 1
+    postulanteIdPathParam:
+      name: postulanteId
+      in: path
+      required: true
+      schema:
+        type: integer
+      example: 1
+    solicitudIdPathParam:
+      name: solicitudId
+      in: path
+      required: true
+      schema:
+        type: integer
+      example: 100
+    postulacionIdPathParam:
+      name: postulacionId
+      in: path
+      required: true
+      schema:
+        type: integer
+      example: 100
+    pageQueryParam:
+      name: page
+      in: query
+      required: false
+      schema:
+        type: integer
+      example: 3
+    pageSizeQueryParam:
+      name: size
+      in: query
+      required: false
+      schema:
+        type: integer
+      example: 25
+    sortByQueryParam:
+      name: sortBy
+      in: query
+      required: false
+      schema:
+        type: string
+        enum:
+        - fechaCreacion
+        - cliente
+      example: fechaCreacion
+    orderByQueryParam:
+      name: orderBy
+      in: query
+      required: false
+      schema:
+        type: string
+        enum:
+        - asc
+        - desc
+      example: desc
+  schemas:
+    Metadata:
+      description: Información adicional sobre el estado de las peticiones y respuestas del servidor.
+      type: object
+      properties:
+        codigo:
+          type: integer
+          description: Código HTTP esperado que debe entregar el servicio
+          readOnly: true
+          example: 200
+        mensaje:
+          type: string
+          description: Mensaje genérico relacionado al código HTTP del servicio
+          readOnly: true
+          example: operacion exitosa
+        codigoDominio:
+          type: integer
+          description: Código de dominio específico definido en el documento de códigos de dominio
+          readOnly: true
+          example: 600
+        mensajeDominio:
+          type: string
+          description: Mensaje específico relacionado al código de dominio definido en el documento de códigos de dominio
+          readOnly: true
+          example: recurso creado/modificado
+    Paginacion:
+      description: |-
+        Paginación referencial en base a los posibles futuros requerimientos y flexibilidad necesarios para cumplirlos. Puede utilizarse un esquema similar si se determina conveniente.
+      type: object
+      properties:
+        next:
+          type: boolean
+          description: Indica si existe otra página posterior a la actual
+          readOnly: true
+          example: true
+        prev:
+          type: boolean
+          description: Indica si existe otra página previa a la actual
+          readOnly: true
+          example: true
+        total:
+          type: integer
+          description: Total de existencias del objeto
+          readOnly: true
+          example: 100
+        page:
+          type: integer
+          description: Página actual
+          readOnly: true
+          example: 3
+        size:
+          type: integer
+          description: Indica la cantidad de recursos por página que deben mostrarse según lo indicado por el usuario
+          readOnly: true
+          example: 25
+        totalPages:
+          type: integer
+          description: Número total de páginas
+          readOnly: true
+          example: 4
+    Cliente:
+      description: Cliente relacionado con la empresa
+      type: object
+      properties:
+        clienteId:
+          type: integer
+          format: int64
+          minimum: 1
+          readOnly: true
+          example: 1
+        nombre:
+          type: string
+          description: Nombre del cliente
+          maxLength: 100
+          example: santander
+        pais:
+          $ref: "#/components/schemas/Pais"
+        comercialBRM:
+          $ref: "#/components/schemas/ComercialBRM"
+      required: [clienteId, nombre, pais, comercialBRM]
+    ComercialBRM:
+      description: Comercial BRM asignado por la empresa para establecer la relación con el cliente.
+      type: object
+      properties:
+        comercialBRMId:
+          type: integer
+          format: int64
+          minimum: 1
+          readOnly: true
+          example: 1
+        comercialBRM:
+          type: string
+          description: Nombre y apellidos del comercial BRM
+          maxLength: 120
+          example: jose miguel zapata
+      required: [comercialBRMId, comercialBRM]
+    HistComercialCliente:
+      description: Registro histórico de comerciales BRM de sus puestos previos y actual en clientes.
+      type: object
+      properties:
+        comercialClienteId:
+          type: integer
+          format: int64
+          minimum: 1
+          readOnly: true
+          example: 1
+        comercialBRM:
+          $ref: "#/components/schemas/ComercialBRM"
+        cliente:
+          $ref: "#/components/schemas/Cliente"
+        fechaRegistro:
+          type: string
+          format: date-time
+          description: Fecha de registro del cambio
+          readOnly: true
+          example: 2024-01-21T17:32:28Z
+      required: [comercialClienteId, comercialBRM, cliente, fechaRegistro]
+    Postulante:
+      description: Profesional contratado o en proceso de contratación por la empresa interna.
+      type: object
+      properties:
+        postulanteId:
+          type: integer
+          format: int64
+          minimum: 1
+          readOnly: true
+          example: 1
+        nombre:
+          type: string
+          description: Nombre/s del postulante
+          maxLength: 100
+          example: juan
+        apellidos:
+          type: string
+          description: Apellido/s del postulante
+          maxLength: 100
+          example: perez sepulveda
+        email:
+          type: string
+          maxLength: 120
+          example: juan.sepulveda@email.com
+        numCelular:
+          type: string
+          description: Número telefónico del postulante con código de pais
+          maxLength: 20
+          nullable: true
+          example: 56912345678
+        pais:
+          $ref: "#/components/schemas/Pais"
+        genero:
+          $ref: "#/components/schemas/Genero"
+        discapacidad:
+          type: array
+          items:
+            $ref: "#/components/schemas/Discapacidad"
+        indListaNegra:
+          type: integer
+          format: int32
+          minimum: 0
+          maximum: 1
+          description: Indicador de si el postulante está en la lista negra o no
+          example: 0
+      required: [postulanteId, nombre, apellidos, email, pais, genero, discapacidad]
+    Genero:
+      description: Género del profesional.
+      type: object
+      properties:
+        generoId:
+          type: integer
+          format: int64
+          minimum: 1
+          readOnly: true
+          example: 1
+        genero:
+          type: string
+          enum: [m, f, na]
+          description: Género del postulante
+          minLength: 1
+          maxLength: 2
+          example: m
+      required: [generoId, genero]
+    Discapacidad:
+      description: Discapacidades que puede tener un postulante.
+      type: object
+      properties:
+        discapacidadId:
+          type: integer
+          format: int64
+          minimum: 1
+          readOnly: true
+          example: 1
+        discapacidad:
+          type: string
+          enum: [visual, auditiva, invalidez, no aplica]
+          description: Tipo de discapacidad
+          maxLength: 60
+          example: visual
+      required: [discapacidadId, discapacidad]
+    ListaNegra:
+      description: Registro de postulantes vetados por la empresa interna.
+      type: object
+      properties:
+        listaNegraId:
+          type: integer
+          format: int64
+          minimum: 1
+          readOnly: true
+          example: 1
+        postulante:
+          $ref: "#/components/schemas/Postulante"
+        nombre:
+          type: string
+          description: Nombre/s del postulante
+          maxLength: 100
+          example: juan
+        apellidos:
+          type: string
+          description: Apellido/s del postulante
+          maxLength: 100
+          example: perez sepulveda 
+        email:
+          type: string
+          maxLength: 120
+          example: juan.sepulveda@email.com
+        numCelular:
+          type: string
+          description: Número telefónico del postulante con código de pais
+          maxLength: 20
+          nullable: true
+          example: 56912345678
+        motivo:
+          type: string
+          description: Razón por la que se registra el postulante en la lista
+          maxLength: 100
+          example: abandona proceso de postulación de manera abrupta
+      required: [listaNegraId, postulante, nombre, apellidos, motivo]
+    Pais:
+      description: Datos del pais.
+      type: object
+      properties:
+        paisId:
+          type: integer
+          format: int64
+          minimum: 1
+          readOnly: true
+          example: 1
+        pais:
+          type: string
+          maxLength: 80
+          example: chile
+          description: Nombre del país
+      required: [paisId, pais]
+    Solicitud:
+      description: Solicitud que se genera a raíz de la solicitud de un profesional.
+      type: object
+      properties:
+        solicitudId:
+          type: integer
+          format: int64
+          minimum: 1
+          readOnly: true
+          example: 1
+        cliente:
+          $ref: "#/components/schemas/Cliente"
+        codIdentificador:
+          type: string
+          description: Código único identificador de la solicitud
+          minLength: 15
+          maxLength: 15
+          readOnly: true
+          nullable: false
+          example: solisant1234567
+        bidding:
+          type: string
+          description: Código único identificador entregado a raíz de una solicitud generada para clientes específicos
+          maxLength: 50
+          nullable: true
+          example: citi-123456
+        estado:
+          $ref: "#/components/schemas/EstadoSolicitud"
+        nombreSolicitante:
+          type: string
+          description: Nombre y apellido/s de quien generó la solicitud
+          maxLength: 100
+          example: juan perez
+        areaSolicitante:
+          $ref: "#/components/schemas/Area"
+        fechaInicio:
+          type: string
+          format: date
+          description: Fecha de inicio de la vigencia de la postulación
+          example: 2024-01-10
+        fechaVencimiento:
+          $ref: "#/components/schemas/VencimientoSolicitud"
+        vacantes:
+          type: integer
+          format: int32
+          description: Cantidad de vacantes disponibles
+          minimum: 1
+          maximum: 128
+          example: 10
+        perfil:
+          $ref: "#/components/schemas/Perfil"
+        seniority:
+          $ref: "#/components/schemas/Seniority"
+        tecnologiaPrincipal:
+          $ref: "#/components/schemas/Tecnologia"
+        idioma:
+          type: array
+          items:
+            $ref: "#/components/schemas/Idioma"
+        idiomaCV:
+          $ref: "#/components/schemas/Idioma"
+        baseSalarial:
+          $ref: "#/components/schemas/BaseSalarial"
+        detalleAdicional:
+          type: string
+          description: Campo opcional para comentarios o descripciones detalladas
+          maxLength: 5000
+          nullable: true
+          example: Debe conocer las siguientes tecnologias...
+        fechaCreacion:
+          type: string
+          format: date-time
+          description: Fecha de creación de la solicitud
+          readOnly: true
+          example: 2024-01-21T17:32:28Z
+      required: [solicitudId, cliente, codIdentificador, estado, nombreSolicitante, areaSolicitante, fechaInicio, fechaVencimiento, vacantes, perfil, seniority, tecnologiaPrincipal, idioma, idiomaCV, baseSalarial, fechaCreacion]
+    SolicitudDAO:
+      description: Solicitud que se genera a raíz de la solicitud de un profesional.
+      type: object
+      properties:
+        solicitudId:
+          type: integer
+          format: int64
+          minimum: 1
+          readOnly: true
+          example: 1
+        cliente:
+          $ref: "#/components/schemas/Cliente"
+        codIdentificador:
+          type: string
+          description: Código único identificador de la solicitud
+          minLength: 15
+          maxLength: 15
+          readOnly: true
+          nullable: false
+          example: solisant1234567
+        bidding:
+          type: string
+          description: Código único identificador entregado a raíz de una solicitud generada para clientes específicos
+          maxLength: 50
+          nullable: true
+          example: citi-123456
+        estado:
+          $ref: "#/components/schemas/ListaEstadoSolicitud"
+        nombreSolicitante:
+          type: string
+          description: Nombre y apellido/s de quien generó la solicitud
+          maxLength: 100
+          example: juan perez
+        areaSolicitante:
+          $ref: "#/components/schemas/Area"
+        fechaInicio:
+          type: string
+          format: date
+          description: Fecha de inicio de la vigencia de la postulación
+          example: 2024-01-10
+        fechaVencimiento:
+          $ref: "#/components/schemas/ListaVencimientoSolicitud"
+        vacantes:
+          type: integer
+          format: int32
+          description: Cantidad de vacantes disponibles
+          minimum: 1
+          maximum: 128
+          example: 10
+        perfil:
+          $ref: "#/components/schemas/Perfil"
+        seniority:
+          $ref: "#/components/schemas/Seniority"
+        tecnologiaPrincipal:
+          $ref: "#/components/schemas/Tecnologia"
+        idioma:
+          type: array
+          items:
+            $ref: "#/components/schemas/Idioma"
+        idiomaCV:
+          $ref: "#/components/schemas/Idioma"
+        baseSalarial:
+          $ref: "#/components/schemas/BaseSalarial"
+        detalleAdicional:
+          type: string
+          description: Campo opcional para comentarios o descripciones detalladas
+          maxLength: 5000
+          nullable: true
+          example: Debe conocer las siguientes tecnologias...
+        fechaCreacion:
+          type: string
+          format: date-time
+          description: Fecha de creación de la solicitud
+          readOnly: true
+          example: 2024-01-21T17:32:28Z
+      required: [solicitudId, cliente, codIdentificador, estado, nombreSolicitante, areaSolicitante, fechaInicio, fechaVencimiento, vacantes, perfil, seniority, tecnologiaPrincipal, idioma, idiomaCV, baseSalarial, fechaCreacion]
+    Area:
+      description: Áreas a la cual pertenece aquel que realice una solicitud de parte del cliente
+      type: object
+      properties:
+        areaId:
+          type: integer
+          format: int64
+          minimum: 1
+          readOnly: true
+          example: 1
+        nombreArea:
+          type: string
+          description: Nombre del área
+          maxLength: 100
+          example: msst dev
+      required: [areaId, nombreArea]
+    Perfil:
+      description: Perfiles o cargos requeridos o solicitados.
+      type: object
+      properties:
+        perfilId:
+          type: integer
+          format: int64
+          minimum: 1
+          readOnly: true
+          example: 1
+        perfil:
+          type: string
+          description: Nombre del perfil o cargo
+          maxLength: 120
+          example: software engineer
+      required: [perfilId, perfil]
+    Tecnologia:
+      description: Tecnologías, herramientas o plataformas principalmente requeridas.
+      type: object
+      properties:
+        tecnologiaId:
+          type: integer
+          format: int64
+          minimum: 1
+          readOnly: true
+          example: 1
+        tecnologia:
+          type: string
+          description: Nombre de la tecnología, herramienta o plataforma
+          minLength: 1
+          maxLength: 120
+          example: java
+      required: [tecnologiaId, tecnologia]
+    Idioma:
+      description: Datos del idioma.
+      type: object
+      properties:
+        idiomaId:
+          type: integer
+          format: int64
+          minimum: 1
+          readOnly: true
+          example: 1
+        idioma:
+          type: string
+          description: Nombre del idioma
+          maxLength: 30
+          example: ingles
+      required: [idiomaId, idioma]
+    BaseSalarial:
+      description: Rango salarial que se entrega para una solicitud.
+      type: object
+      properties:
+        baseSalarialId:
+          type: integer
+          format: int64
+          minimum: 1
+          readOnly: true
+          example: 1
+        baseSalarial:
+          type: string
+          enum:
+            - 1000000 - 1200000
+            - 1200000 - 1400000
+            - 1400000 - 1600000
+            - 1600000 - 1800000
+            - 1800000 - 2000000
+            - 2000000 - 2200000
+            - 2200000 - 2400000
+            - 2400000 - 2600000
+            - 2600000 - 2800000
+            - 2800000 - 3000000+
+          description: Rango salarial
+          maxLength: 50
+          example: 1000000 - 1200000
+      required: [baseSalarialId, baseSalarial]
+    VencimientoSolicitud:
+      description: Registro de fechas de vencimiento históricas asociadas a una solicitud
+      type: object
+      properties:
+        vencimientoSolId:
+          type: integer
+          format: int64
+          minimum: 1
+          readOnly: true
+          example: 1
+        solicitudId:
+          type: integer
+          format: int64
+          minimum: 1
+          example: 1
+        fechaVencimiento:
+          type: string
+          format: date
+          description: Fecha de vencimiento de la vigencia de la postulación
+          example: 2024-05-10
+        motivo:
+          type: string
+          description: Razón por la que se realiza el cambio
+          maxLength: 100
+          example: cliente no cumple con la entrega de información...
+        fechaRegistro:
+          type: string
+          format: date-time
+          description: Fecha de registro del cambio
+          readOnly: true
+          example: 2024-01-21T17:32:28Z
+      required: [vencimientoSolId, solicitud, fechaVencimiento, motivo, fechaRegistro]
+    ListaVencimientoSolicitud:
+      description: Registro de fechas de vencimiento históricas asociadas a una solicitud
+      type: array
+      items:
+        properties:
+          vencimientoSolId:
+            type: integer
+            format: int64
+            minimum: 1
+            readOnly: true
+            example: 1
+          fechaVencimiento:
+            type: string
+            format: date
+            description: Fecha de vencimiento de la vigencia de la postulación
+            example: 2024-05-10
+          motivo:
+            type: string
+            description: Razón por la que se realiza el cambio
+            maxLength: 100
+            example: cliente no cumple con la entrega de información...
+          fechaRegistro:
+            type: string
+            format: date-time
+            description: Fecha de registro del cambio
+            readOnly: true
+            example: 2024-01-21T17:32:28Z
+      required: [vencimientoSolId, fechaVencimiento, motivo, fechaRegistro]
+    EstadoSolicitud:
+      description: Registro de estados históricos asociados a una solicitud.
+      type: object
+      properties:
+        estadoSolId:
+          type: integer
+          format: int64
+          minimum: 1
+          readOnly: true
+          example: 1
+        solicitudId:
+          type: integer
+          format: int64
+          minimum: 1
+          example: 1
+        estado:
+          $ref: "#/components/schemas/Estado"
+        fechaCambioEstado:
+          type: string
+          format: date-time
+          description: Fecha en que se realizó el cambio de estado
+          example: 2024-01-21T17:32:28Z
+        motivo:
+          type: string
+          description: Razón por la que se realiza el cambio
+          maxLength: 100
+          example: proceso finalizado
+        indActivo:
+          type: integer
+          format: int32
+          minimum: 0
+          maximum: 1
+          description: Indicador del estado activo del último registro ingresado
+          example: 1
+      required: [estadoSolId, solicitud, estado, fechaCambioEstado, motivo, indActivo]
+    ListaEstadoSolicitud:
+      description: Registro de estados históricos asociados a una solicitud.
+      type: array
+      items:
+        properties:
+          estadoSolId:
+            type: integer
+            format: int64
+            minimum: 1
+            readOnly: true
+            example: 1
+          estado:
+            $ref: "#/components/schemas/Estado"
+          fechaCambioEstado:
+            type: string
+            format: date-time
+            description: Fecha en que se realizó el cambio de estado
+            example: 2024-01-21T17:32:28Z
+          motivo:
+            type: string
+            description: Razón por la que se realiza el cambio
+            maxLength: 100
+            example: proceso finalizado
+          indActivo:
+            type: integer
+            format: int32
+            minimum: 0
+            maximum: 1
+            description: Indicador del estado activo del último registro ingresado
+            example: 1
+      required: [estadoSolId, estado, fechaCambioEstado, motivo, indActivo]
+    Postulacion:
+      description: Registro del proceso de postulación que realiza un profesional para un cliente. Está estrictamente relacionada con una solicitud.
+      type: object
+      properties:
+        postulacionId:
+          type: integer
+          format: int64
+          minimum: 1
+          readOnly: true
+          example: 1
+        solicitudSRS:
+          $ref: "#/components/schemas/SolicitudSRS"
+        estado:
+          $ref: "#/components/schemas/Estado"
+        seniority:
+          $ref: "#/components/schemas/Seniority"
+        sueldoSolicitado:
+          type: integer
+          format: int32
+          description: Sueldo que solicita el postulante
+          maxLength: 7
+          example: 1200000
+        postulante:
+          $ref: "#/components/schemas/Postulante"
+        indReemplazo:
+          type: integer
+          format: int32
+          minimum: 0
+          maximum: 1
+          description: Indicador de si el postulante irá por un reemplazo o no
+          example: 1
+        fechaRecepcionCV:
+          type: string
+          format: date
+          description: Fecha en la que se recibió el CV
+          example: 2024-01-10
+        origenCV:
+          $ref: "#/components/schemas/OrigenCV"
+        paisOrigenCV:
+          $ref: "#/components/schemas/Pais"
+        cv:
+          type: string
+          format: binary
+          description: Registro del CV del postulante
+          nullable: true
+        fechaEntrevistaInterna:
+          type: string
+          format: date
+          description: Fecha en la que el postulante tendrá la entrevista con la empresa interna
+          example: 2024-02-10
+        indApruebaEntrevistaInterna:
+          type: integer
+          format: int32
+          minimum: 0
+          maximum: 1
+          description: Indicador de si el postulante aprobó la entrevista con la empresa interna
+          example: 1
+        comentarioEntrevistaInterna:
+          type: string
+          description: Comentarios opcionales sobre el desempeño del postulante en la entrevista interna
+          maxLength: 500
+          nullable: true
+          example: el postulante hizo la entrevista con...
+        nivelIngles:
+          $ref: "#/components/schemas/NivelIngles"
+        indApruebaIngles:
+          type: integer
+          format: int32
+          minimum: 0
+          maximum: 1
+          description: Indicador de si el postulante aprobó la prueba de inglés con la empresa interna
+          example: 1
+        indRequierePruebaTecnica:
+          type: integer
+          format: int32
+          minimum: 0
+          maximum: 1
+          description: Indicador de si el postulante requiere realizar una prueba técnica con la empresa interna o con cliente
+          example: 1
+        fechaEnvioPruebaTecnica:
+          type: string
+          format: date
+          description: Fecha en la que se le envía la prueba técnica a el postulante
+          example: 2024-01-20
+        fechaEntregaPruebaTecnica:
+          type: string
+          format: date
+          description: Fecha de entrega de la prueba técnica del postulante
+          example: 2024-01-25
+        comentariosPruebaTecnica:
+          type: string
+          description: Comentarios opcionales del cliente o empresa interna sobre el desempeño del postulante
+          maxLength: 500
+          nullable: true
+          example: si bien el postulante tuvo alto rendimiento...
+        indApruebaPruebaTecnica:
+          type: integer
+          format: int32
+          minimum: 0
+          maximum: 1
+          description: Indicador de si el postulante aprobó la prueba técnica realizada con la empresa interna o con cliente
+          example: 1
+        feedbackPruebaTecnica:
+          type: string
+          format: binary
+          description: Documento opcional del feedback del cliente
+          nullable: true
+        indEnviarAEntrevistaConCliente:
+          type: integer
+          format: int32
+          minimum: 0
+          maximum: 1
+          description: Indicador de si el postulante está calificado para ir a una entrevista con cliente
+          example: 1
+        motivoNoEnvio:
+          $ref: "#/components/schemas/MotivoNoEnvio"
+        fechaEntrevistaCliente:
+          type: string
+          format: date
+          description: Fecha en la que el cliente entrevistará al postulante
+          example: 2024-03-10
+        indAceptadoPorCliente:
+          type: integer
+          format: int32
+          minimum: 0
+          maximum: 1
+          description: Indicador de si el postulante fue aceptado por el cliente
+          example: 1
+        motivoRechazo:
+          type: string
+          description: Indica (si corresponde) el motivo por el cual el postulante fue rechazado por el cliente
+          maxLength: 500
+          nullable: true
+          example: el postulante no calificó por...
+        comentariosAdicionales:
+          type: string
+          description: Comentarios adicionales opcionales referentes a cualquier ámbito de la postulación o postulante
+          maxLength: 500
+          nullable: true
+          example: sin comentarios
+        fechaInicioEnCliente:
+          type: string
+          format: date
+          description: Fecha en la que el postulante ejercerá sus labores en cliente
+          example: 2024-04-10
+        indPostulanteEnCliente:
+          type: integer
+          format: int32
+          minimum: 0
+          maximum: 1
+          description: Indicador de si el postulante quedó en cliente
+          example: 1
+        indPostulanteAbandonaPostulacion:
+          type: integer
+          format: int32
+          minimum: 0
+          maximum: 1
+          description: Indicador de si el postulante abandonó el proceso de postulación
+          example: 1
+        fechaCreacion:
+          type: string
+          format: date
+          description: Fecha en la que se creó la solicitud
+          readOnly: true
+          example: 2024-01-10
+      required: [postulacionId, solicitudSRS, estado, seniority, sueldoSolicitado, postulante, indReemplazo, fechaCreacion]
+    PostulacionDAO:
+      description: Registro del proceso de postulación que realiza un profesional para un cliente. Está estrictamente relacionada con una solicitud.
+      type: object
+      properties:
+        postulacionId:
+          type: integer
+          format: int64
+          minimum: 1
+          readOnly: true
+          example: 1
+        solicitudSRS:
+          $ref: "#/components/schemas/ListaSolicitudSRS"
+        estado:
+          $ref: "#/components/schemas/ListaEstadoPostulacion"
+        seniority:
+          $ref: "#/components/schemas/Seniority"
+        sueldoSolicitado:
+          type: integer
+          format: int32
+          description: Sueldo que solicita el postulante
+          maxLength: 7
+          example: 1200000
+        postulante:
+          $ref: "#/components/schemas/Postulante"
+        indReemplazo:
+          type: integer
+          format: int32
+          minimum: 0
+          maximum: 1
+          description: Indicador de si el postulante irá por un reemplazo o no
+          example: 1
+        fechaRecepcionCV:
+          type: string
+          format: date
+          description: Fecha en la que se recibió el CV
+          example: 2024-01-10
+        origenCV:
+          $ref: "#/components/schemas/OrigenCV"
+        paisOrigenCV:
+          $ref: "#/components/schemas/Pais"
+        cv:
+          type: string
+          format: binary
+          description: Registro del CV del postulante
+          nullable: true
+        fechaEntrevistaInterna:
+          type: string
+          format: date
+          description: Fecha en la que el postulante tendrá la entrevista con la empresa interna
+          example: 2024-02-10
+        indApruebaEntrevistaInterna:
+          type: integer
+          format: int32
+          minimum: 0
+          maximum: 1
+          description: Indicador de si el postulante aprobó la entrevista con la empresa interna
+          example: 1
+        comentarioEntrevistaInterna:
+          type: string
+          description: Comentarios opcionales sobre el desempeño del postulante en la entrevista interna
+          maxLength: 500
+          nullable: true
+          example: el postulante hizo la entrevista con...
+        nivelIngles:
+          $ref: "#/components/schemas/NivelIngles"
+        indApruebaIngles:
+          type: integer
+          format: int32
+          minimum: 0
+          maximum: 1
+          description: Indicador de si el postulante aprobó la prueba de inglés con la empresa interna
+          example: 1
+        indRequierePruebaTecnica:
+          type: integer
+          format: int32
+          minimum: 0
+          maximum: 1
+          description: Indicador de si el postulante requiere realizar una prueba técnica con la empresa interna o con cliente
+          example: 1
+        fechaEnvioPruebaTecnica:
+          type: string
+          format: date
+          description: Fecha en la que se le envía la prueba técnica a el postulante
+          example: 2024-01-20
+        fechaEntregaPruebaTecnica:
+          type: string
+          format: date
+          description: Fecha de entrega de la prueba técnica del postulante
+          example: 2024-01-25
+        comentariosPruebaTecnica:
+          type: string
+          description: Comentarios opcionales del cliente o empresa interna sobre el desempeño del postulante
+          maxLength: 500
+          nullable: true
+          example: si bien el postulante tuvo alto rendimiento...
+        indApruebaPruebaTecnica:
+          type: integer
+          format: int32
+          minimum: 0
+          maximum: 1
+          description: Indicador de si el postulante aprobó la prueba técnica realizada con la empresa interna o con cliente
+          example: 1
+        feedbackPruebaTecnica:
+          type: string
+          format: binary
+          description: Documento opcional del feedback del cliente
+          nullable: true
+        indEnviarAEntrevistaConCliente:
+          type: integer
+          format: int32
+          minimum: 0
+          maximum: 1
+          description: Indicador de si el postulante está calificado para ir a una entrevista con cliente
+          example: 1
+        motivoNoEnvio:
+          $ref: "#/components/schemas/MotivoNoEnvio"
+        fechaEntrevistaCliente:
+          type: string
+          format: date
+          description: Fecha en la que el cliente entrevistará al postulante
+          example: 2024-03-10
+        indAceptadoPorCliente:
+          type: integer
+          format: int32
+          minimum: 0
+          maximum: 1
+          description: Indicador de si el postulante fue aceptado por el cliente
+          example: 1
+        motivoRechazo:
+          type: string
+          description: Indica (si corresponde) el motivo por el cual el postulante fue rechazado por el cliente
+          maxLength: 500
+          nullable: true
+          example: el postulante no calificó por...
+        comentariosAdicionales:
+          type: string
+          description: Comentarios adicionales opcionales referentes a cualquier ámbito de la postulación o postulante
+          maxLength: 500
+          nullable: true
+          example: sin comentarios
+        fechaInicioEnCliente:
+          type: string
+          format: date
+          description: Fecha en la que el postulante ejercerá sus labores en cliente
+          example: 2024-04-10
+        indPostulanteEnCliente:
+          type: integer
+          format: int32
+          minimum: 0
+          maximum: 1
+          description: Indicador de si el postulante quedó en cliente
+          example: 1
+        indPostulanteAbandonaPostulacion:
+          type: integer
+          format: int32
+          minimum: 0
+          maximum: 1
+          description: Indicador de si el postulante abandonó el proceso de postulación
+          example: 1
+        fechaCreacion:
+          type: string
+          format: date
+          description: Fecha en la que se creó la solicitud
+          readOnly: true
+          example: 2024-01-10
+      required: [postulacionId, solicitudSRS, estado, seniority, sueldoSolicitado, postulante, indReemplazo, fechaCreacion]
+    NivelIngles:
+      description: Indica el nivel del idioma según estándar del Marco Común Europeo.
+      type: object
+      properties:
+        nivelInglesId:
+          type: integer
+          format: int64
+          minimum: 1
+          readOnly: true
+          example: 1
+        nivel:
+          type: string
+          enum: [a1, a2, b1, b2, c1, c2]
+          description: Nivel de idioma
+          minLength: 2
+          maxLength: 2
+          example: a1
+      required: [nivelInglesId, nivel]
+    OrigenCV:
+      description: Origen del que proviene el CV del postulante
+      type: object
+      properties:
+        origenCVId:
+          type: integer
+          format: int64
+          minimum: 1
+          readOnly: true
+          example: 1
+        origen:
+          type: string
+          enum: 
+            - talent
+            - factoria
+            - desasignado
+            - duplicados
+            - referidos
+            - otros
+          description: Nombre del origen
+          maxLength: 50
+          example: talent
+      required: [origenCVId, origen]
+    MotivoNoEnvio:
+      description: Motivo por el cual un postulante no iría a un cliente
+      type: object
+      properties:
+        motivoId:
+          type: integer
+          format: int64
+          minimum: 1
+          readOnly: true
+          example: 1
+        motivo:
+          type: string
+          description: Nombre del motivo
+          maxLength: 150
+          example: no aplica
+      required: [motivoId, motivo]
+    EstadoPostulacion:
+      description: Registro de estados históricos asociados a una postulación.
+      type: object
+      properties:
+        estadoPosId:
+          type: integer
+          format: int64
+          minimum: 1
+          readOnly: true
+          example: 1
+        postulacion:
+          $ref: "#/components/schemas/Postulacion"
+        estado:
+          $ref: "#/components/schemas/Estado"
+        fechaCambioEstado:
+          type: string
+          format: date-time
+          description: Fecha en que se realizó el cambio de estado
+          example: 2024-01-21T17:32:28Z
+        motivo:
+          type: string
+          description: Razón por la que se realiza el cambio
+          maxLength: 100
+          example: proceso finalizado
+        indActivo:
+          type: integer
+          format: int32
+          minimum: 0
+          maximum: 1
+          description: Indicador del estado activo del último registro ingresado
+          example: 1
+      required: [estadoPosId, postulacion, estado, fechaCambioEstado, motivo, indActivo]
+    ListaEstadoPostulacion:
+      description: Registro de estados históricos asociados a una postulación.
+      type: array
+      items:
+        properties:
+          estadoPosId:
+            type: integer
+            format: int64
+            minimum: 1
+            readOnly: true
+            example: 1
+          estado:
+            $ref: "#/components/schemas/Estado"
+          fechaCambioEstado:
+            type: string
+            format: date-time
+            description: Fecha en que se realizó el cambio de estado
+            example: 2024-01-21T17:32:28Z
+          motivo:
+            type: string
+            description: Razón por la que se realiza el cambio
+            maxLength: 100
+            example: proceso finalizado
+          indActivo:
+            type: integer
+            format: int32
+            minimum: 0
+            maximum: 1
+            description: Indicador del estado activo del último registro ingresado
+            example: 1
+      required: [estadoPosId, postulacion, estado, fechaCambioEstado, motivo, indActivo]
+    Estado:
+      description: Estados en los que se puede encontrar una solicitud o postulación
+      type: object
+      properties:
+        estadoId:
+          type: integer
+          format: int64
+          minimum: 1
+          readOnly: true
+          example: 1
+        estado:
+          type: string
+          description: Nombre del estado
+          maxLength: 20
+          example: abierto
+      required: [estadoId, estado]
+    Seniority:
+      description: Indica el nivel de expertiz de un postulante
+      type: object
+      properties:
+        seniorityId:
+          type: integer
+          format: int64
+          minimum: 1
+          readOnly: true
+          example: 1
+        seniority:
+          type: string
+          enum: [trainee, junior, semi-senior, senior, expert]
+          description: Nivel de expertiz
+          maxLength: 50
+          example: trainee
+      required: [seniorityId, seniority]
+    SolicitudSRS:
+      description: Referencia el código SRS generado en una solicitud.
+      type: object
+      properties:
+        solicitudSRSId:
+          type: integer
+          format: int64
+          minimum: 1
+          readOnly: true
+          example: 1
+        solicitudId:
+          type: integer
+          format: int64
+          minimum: 1
+          readOnly: true
+          example: 1
+        reqSRS:
+          type: string
+          description: Código del requerimiento SRS
+          maxLength: 20
+          example: req-123456
+      required: [solicitudSRSId, solicitud, reqSRS]
+    ListaSolicitudSRS:
+      description: Referencia el código SRS generado en una solicitud.
+      type: array
+      items:
+        properties:
+          solicitudSRSId:
+            type: integer
+            format: int64
+            minimum: 1
+            readOnly: true
+            example: 1
+          solicitudId:
+            type: integer
+            format: int64
+            minimum: 1
+            readOnly: true
+            example: 1
+          reqSRS:
+            type: string
+            description: Código del requerimiento SRS
+            maxLength: 20
+            example: req-123456
+      required: [solicitudSRSId, solicitud, reqSRS]
+  responses:
+    '204':
+      description: Entregar metadata si el/los recurso/s no existe/n pero la consulta se realizó de manera correcta y exitosa
+      content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  metadata: 
+                    type: object
+                    properties:
+                      codigo:
+                        type: integer
+                        description: Código HTTP que debe entregar el servicio
+                        example: 204
+                      mensaje:
+                        type: string
+                        description: Mensaje genérico relacionado al código HTTP del servicio
+                        example: operacion realizada
+                      codigoDominio:
+                        type: integer
+                        description: Código de dominio específico definido en el documento de códigos de dominio
+                        example: 710
+                      mensajeDominio:
+                        type: string
+                        description: Mensaje específico relacionado al código de dominio definido en el documento de códigos de dominio
+                        example: recurso no existe
+                  data:
+                    type: object
+    '400':
+      description: Entregar metadata si la consulta se realizó de manera errónea debido a valores incorrectos o faltantes según validaciones o recurso ya existe
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              metadata:
+                type: object
+                properties:
+                  codigo:
+                    type: integer
+                    description: Código HTTP que debe entregar el servicio
+                    example: 400
+                  mensaje:
+                    type: string
+                    description: Mensaje genérico relacionado al código HTTP del servicio
+                    example: hubo un problema en la operacion
+                  codigoDominio:
+                    type: integer
+                    description: Código de dominio específico definido en el documento de códigos de dominio
+                    example: 700
+                  mensajeDominio:
+                    type: string
+                    description: Mensaje específico relacionado al código de dominio definido en el documento de códigos de dominio
+                    example: solicitud invalida. por favor verificar que los datos ingresados sean validos
+              data:
+                type: object
+    '404':
+      description: Entregar metadata si no existen registros del recurso
+      content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                metadata: 
+                  type: object
+                  properties:
+                    codigo:
+                      type: integer
+                      description: Código HTTP que debe entregar el servicio
+                      example: 404
+                    mensaje:
+                      type: string
+                      description: Mensaje genérico relacionado al código HTTP del servicio
+                      example: hubo un problema en la operacion
+                    codigoDominio:
+                      type: integer
+                      description: Código de dominio específico definido en el documento de códigos de dominio
+                      example: 710
+                    mensajeDominio:
+                      type: string
+                      description: Mensaje específico relacionado al código de dominio definido en el documento de códigos de dominio
+                      example: recurso no existe
+                data:
+                  type: object
